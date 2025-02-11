@@ -1,33 +1,43 @@
-const cacheName = "DefaultCompany-2D Platformer Microgame-4.0.4";
+const cacheName = "unity-webgl-cache-v1";
 const contentToCache = [
-    "Build/webgl.loader.js",
-    "Build/webgl.framework.js",
-    "Build/webgl.data",
-    "Build/webgl.wasm",
-    "TemplateData/style.css"
-
+  "index.html",
+  "Build/webgl.loader.js",
+  "Build/webgl.framework.js",
+  "Build/webgl.data",
+  "Build/webgl.wasm",
+  "TemplateData/style.css",
+  "manifest.webmanifest",
 ];
 
-self.addEventListener('install', function (e) {
-    console.log('[Service Worker] Install');
-    
-    e.waitUntil((async function () {
-      const cache = await caches.open(cacheName);
-      console.log('[Service Worker] Caching all: app shell and content');
-      await cache.addAll(contentToCache);
-    })());
+self.addEventListener("install", (event) => {
+  console.log("[Service Worker] Installing...");
+
+  event.waitUntil(
+    caches.open(cacheName).then((cache) => {
+      console.log("[Service Worker] Caching all required files");
+      return cache.addAll(contentToCache);
+    })
+  );
 });
 
-self.addEventListener('fetch', function (e) {
-    e.respondWith((async function () {
-      let response = await caches.match(e.request);
-      console.log(`[Service Worker] Fetching resource: ${e.request.url}`);
-      if (response) { return response; }
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      // Jika ada di cache, gunakan cache
+      if (response) {
+        console.log(
+          `[Service Worker] Serving from cache: ${event.request.url}`
+        );
+        return response;
+      }
 
-      response = await fetch(e.request);
-      const cache = await caches.open(cacheName);
-      console.log(`[Service Worker] Caching new resource: ${e.request.url}`);
-      cache.put(e.request, response.clone());
-      return response;
-    })());
+      // Jika tidak ada di cache, ambil dari jaringan (saat online)
+      console.log(
+        `[Service Worker] Fetching from network: ${event.request.url}`
+      );
+      return fetch(event.request).catch(() => {
+        console.error(`[Service Worker] Failed to fetch: ${event.request.url}`);
+      });
+    })
+  );
 });

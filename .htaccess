@@ -1,0 +1,17 @@
+<IfModule mod_headers.c>
+    <FilesMatch "\.wasm$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    </FilesMatch>
+    
+    <FilesMatch "\.(wasm|data|js|symbols)\.gz$">
+        Header set Content-Encoding gzip
+        Header set Content-Type application/octet-stream
+    </FilesMatch>
+
+    <FilesMatch "\.(wasm|data|js|symbols)\.br$">
+        Header set Content-Encoding br
+        Header set Content-Type application/octet-stream
+    </FilesMatch>
+    
+    Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>
